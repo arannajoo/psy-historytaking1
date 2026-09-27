@@ -1,0 +1,617 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>CHR // NOTE</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Nanum+Gothic+Coding:wght@400;700&display=swap" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/galmuri/dist/galmuri.css" rel="stylesheet">
+<meta name="theme-color" content="#000000">
+<style>
+:root {
+  --bg: #000000;
+  --fg: #FFFFFF;
+  --dim: rgba(255,255,255,0.45);
+  --pixel-en: "Press Start 2P", "Nanum Gothic Coding", monospace;
+  --pixel-ko: "Galmuri11", "Galmuri9", "DungGeunMo", "Nanum Gothic Coding", monospace;
+  box-sizing: border-box;
+  padding-top: env(safe-area-inset-top, 0px);
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+  color-scheme: dark;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --bg:#000000; --fg:#FFFFFF; } }
+:root[data-theme="dark"] { --bg:#000000; --fg:#FFFFFF; }
+*, *::before, *::after { box-sizing: inherit; margin: 0; }
+html { height: 100%; background: var(--bg); scroll-padding-top: env(safe-area-inset-top, 0px); }
+body {
+  min-height: 100%;
+  background: var(--bg);
+  color: var(--fg);
+  font-family: var(--pixel-ko);
+  -webkit-font-smoothing: none;
+  -moz-osx-font-smoothing: grayscale;
+  font-smooth: never;
+  font-variant-numeric: tabular-nums;
+}
+.screen {
+  min-height: calc(100dvh - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px));
+  max-width: 640px;
+  margin: 0 auto;
+  padding: 28px 22px 32px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+.status {
+  font-family: var(--pixel-en);
+  font-size: 9px;
+  letter-spacing: 0.08em;
+  color: var(--dim);
+  line-height: 1.6;
+}
+.stage {
+  flex: 1;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 7vh 0 10vh;
+}
+.note {
+  color: var(--fg);
+  font-weight: 700;
+  line-height: 1.9;
+  word-break: keep-all;
+  overflow-wrap: break-word;
+  text-align: center;
+}
+.note.len-s  { font-size: clamp(19px, 5.2vw, 26px); }
+.note.len-m  { font-size: clamp(17px, 4.4vw, 22px); }
+.note.len-l  { font-size: clamp(15px, 3.9vw, 19px); text-align: left; }
+.note.len-xl { font-size: clamp(14px, 3.6vw, 17px); text-align: left; line-height: 2; }
+.note strong {
+  background: var(--fg);
+  color: var(--bg);
+  padding: 0 0.2em;
+  -webkit-box-decoration-break: clone;
+  box-decoration-break: clone;
+}
+[hidden] { display: none !important; }
+.controls { display: flex; flex-direction: column; align-items: center; gap: 14px; }
+.subrow { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
+.memo {
+  margin-top: 2.4em;
+  text-align: left;
+  border-left: 2px solid var(--dim);
+  padding: 2px 0 2px 14px;
+  color: var(--dim);
+  font-size: clamp(13px, 3.6vw, 15px);
+  line-height: 1.8;
+  white-space: pre-wrap;
+  word-break: keep-all;
+  overflow-wrap: break-word;
+}
+.label {
+  display: block;
+  font-family: var(--pixel-en);
+  font-size: 8px;
+  letter-spacing: 0.08em;
+  color: var(--dim);
+  margin-bottom: 8px;
+}
+.editor { width: 100%; text-align: left; }
+.editor textarea {
+  display: block;
+  width: 100%;
+  min-height: 42vh;
+  background: #000;
+  color: #fff;
+  border: 2px solid #fff;
+  border-radius: 0;
+  padding: 14px;
+  font-family: var(--pixel-ko);
+  font-size: 16px;
+  line-height: 1.8;
+  resize: vertical;
+  outline: none;
+  -webkit-font-smoothing: none;
+}
+.editor textarea:focus-visible { border-width: 4px; padding: 12px; }
+.editor .hint { font-family: var(--pixel-ko); font-size: 12px; color: var(--dim); margin-top: 10px; line-height: 1.6; }
+.editbar { display: flex; gap: 10px; justify-content: flex-end; flex-wrap: wrap; margin-top: 14px; }
+.editbar .save { color: #fff; border-color: #fff; }
+.panel { width: 100%; text-align: left; }
+.panel .info { font-family: var(--pixel-ko); font-size: 14px; line-height: 1.9; color: #fff; }
+.panel .info .dim { color: var(--dim); }
+.panel .msg { font-family: var(--pixel-en); font-size: 8px; letter-spacing: 0.08em; color: #fff; min-height: 1.6em; margin-top: 14px; }
+.next, .copy, .mini {
+  font-family: var(--pixel-en);
+  letter-spacing: 0.08em;
+  background: #000;
+  border-radius: 0;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  -webkit-font-smoothing: none;
+}
+.next { font-size: 10px; color: #fff; border: 2px solid #fff; padding: 16px 28px; min-width: 200px; }
+.copy, .mini { font-size: 8px; color: var(--dim); border: 2px solid var(--dim); padding: 10px 18px; }
+@media (hover: hover) {
+  .next:hover, .copy:hover, .mini:hover { background: #fff; color: #000; border-color: #fff; }
+}
+.next:active, .copy:active, .mini:active { background: #fff; color: #000; border-color: #fff; transform: translate(1px, 1px); }
+.next:focus-visible, .copy:focus-visible, .mini:focus-visible { outline: 2px solid #fff; outline-offset: 4px; }
+.card.off { visibility: hidden; }
+.card.on { animation: appear 0.16s steps(2, end); }
+@keyframes appear { from { opacity: 0; } to { opacity: 1; } }
+@media (prefers-reduced-motion: reduce) {
+  .card.on { animation: none; }
+  .next:active, .copy:active, .mini:active { transform: none; }
+}
+</style>
+</head>
+<body>
+<main class="screen">
+  <p class="status" id="status" aria-hidden="true">CHR // NOTE ---</p>
+  <section class="stage" aria-live="polite">
+    <div class="card" id="card">
+      <div id="view">
+        <p class="note" id="note"></p>
+        <div class="memo" id="memo" hidden><span class="label">MEMO</span><span id="memoText"></span></div>
+      </div>
+      <div class="panel" id="panel" hidden>
+        <span class="label">DATA // BACKUP</span>
+        <p class="info" id="dataInfo"></p>
+        <p class="info dim" style="font-size:12px;margin-top:10px">EXPORT는 원문 100개와 수정본·메모를 JSON 파일 하나로 저장해요. 다른 기기나 브라우저에서 IMPORT하면 수정본·메모가 합쳐져요.</p>
+        <p class="msg" id="dataMsg"></p>
+        <div class="editbar">
+          <button type="button" class="mini" id="dataClose">CLOSE</button>
+          <button type="button" class="mini" id="importBtn">IMPORT</button>
+          <button type="button" class="mini save" id="exportBtn">EXPORT</button>
+        </div>
+        <input type="file" id="importFile" accept=".json,application/json" hidden>
+      </div>
+      <div class="editor" id="editor" hidden>
+        <span class="label" id="editLabel">EDIT</span>
+        <textarea id="editText" spellcheck="false" aria-labelledby="editLabel"></textarea>
+        <p class="hint" id="editHint"></p>
+        <div class="editbar">
+          <button type="button" class="mini" id="cancel">CANCEL</button>
+          <button type="button" class="mini" id="reset">ORIGINAL</button>
+          <button type="button" class="mini" id="remove">DELETE</button>
+          <button type="button" class="mini save" id="save">SAVE</button>
+        </div>
+      </div>
+    </div>
+  </section>
+  <div class="controls" id="controls">
+    <button type="button" class="next" id="next">NEXT NOTE</button>
+    <div class="subrow">
+      <button type="button" class="copy" id="copy">COPY</button>
+      <button type="button" class="mini" id="edit">EDIT</button>
+      <button type="button" class="mini" id="memoBtn">MEMO</button>
+      <button type="button" class="mini" id="dataBtn">DATA</button>
+    </div>
+  </div>
+</main>
+<script>
+/* =====================================================
+   NOTE DATA — 제공된 문장 그대로. **굵게** 표시는 반전 강조로 보여줌.
+   추가·수정은 이 배열만 고치면 됨.
+===================================================== */
+const NOTES = [
+  "가장 먼저 빠진 건 safety야. 기분을 물으면서 환자가 자발적으로 “죽고 싶지는 않다”고 했지만, 정식으로는 확인해야 해. “최근 죽고 싶다는 생각이나 차라리 없어졌으면 좋겠다는 생각이 든 적 있나요?”, “스스로 해칠 생각이나 계획은요?”, “누군가를 해치고 싶거나, 누가 해칠 것 같아서 먼저 방어해야겠다고 생각한 적은요?” 특히 persecutory ideation이 있는 환자에서는 공포 때문에 행동으로 옮길 가능성도 봐야 해.",
+  "substance가 매우 중요해. CHR처럼 보이는 젊은 환자에서는 거의 필수야. “술은 얼마나 드세요?”, “대마나 합성대마, 필로폰, 엑스터시, LSD 같은 약물을 사용한 적 있나요?”, “ADHD 약이나 다이어트약, 각성제를 처방 이상으로 먹은 적은요?”, “에너지드링크나 카페인을 많이 마시나요?” 특히 cannabis 사용 시점과 이상경험 발생 시점의 관계를 물어봐야 해.",
+  "현재 frank psychosis threshold를 넘었는지 더 명확히 확인해야 해. 지금은 “긴가민가한다” 정도는 잘 확인했지만, “어떤 순간에는 100% 확실하다고 느끼나요?”, “그 생각을 다른 사람이 아니라고 해도 바뀔 수 있나요?”, “최근 일주일 중 가장 심했을 때는 얼마나 확신했나요?”, “그 상태가 몇 분/몇 시간 지속되나요?”를 물어봐. CHR와 psychosis를 가르는 데 conviction + loss of reality testing + frequency/duration이 중요해.",
+  "unusual thought content가 거의 안 다뤄졌어. suspiciousness만으로 끝내면 안 돼. 예를 들어 “최근 우연이라고 보기 어려운 특별한 일들이 자꾸 생긴다고 느낀 적 있나요?”, “TV나 유튜브, SNS의 내용이 나와 관련되어 있거나 나에게 보내는 메시지처럼 느껴진 적 있나요?”, “주변 사건들이 특별한 의미를 갖는 것처럼 느껴지나요?”, “남들이 모르는 특별한 능력이나 역할이 자신에게 있다고 느낀 적은요?” 같은 질문이 필요해.",
+  "thought-related psychotic phenomena도 한번은 screen해야 해. “내 생각이 다른 사람에게 알려지는 것 같은 느낌이 있나요?”, “다른 사람이 생각을 넣거나 빼는 것 같은 느낌은요?”, “내 생각이 내 것이 아닌 것처럼 느껴진 적 있나요?” CHR 환자는 보통 이런 경험이 있더라도 “그런 것 같은 이상한 느낌” 수준일 수 있어.",
+  "perceptual abnormality를 청각만 조금 보고 끝냈어. “이름 부르는 소리 외에 말소리나 속삭임은요?”, “소리가 머릿속 생각처럼 느껴지나요, 아니면 실제 귀로 밖에서 들리는 것 같나요?”, “눈앞에 그림자나 사람이 스쳐 보인 적은요?”, “물건의 모양이나 색이 이상해 보인 적은요?”, “몸의 크기나 감각이 이상하게 느껴진 적은요?” 그리고 반드시 wakefulness인지 hypnagogic/hypnopompic phenomenon인지 확인하면 좋아.",
+  "disorganized communication을 놓쳤어. 면담하면서 관찰도 하지만 질문할 수도 있어. “요즘 말을 하다가 무슨 말을 하려 했는지 잊거나 말이 꼬이는 일이 늘었나요?”, “주변에서 무슨 말인지 모르겠다고 한 적 있나요?”, “생각이 너무 빨리 바뀌거나 연결이 잘 안 된다고 느끼나요?” CHR의 SIPS positive domain 중 하나가 바로 disorganized communication이야.",
+  "negative symptom을 좀 더 세분화할 필요가 있어. 현재 사회적 위축만 확인했어. “예전에 재미있던 것이 재미없어진 건 언제부터인가요?”, “뭔가 하고 싶은 마음 자체가 줄었나요?”, “씻기·정리·과제 같은 일을 시작하기 어려워졌나요?”, “가족과 이야기하는 양이 줄었나요?”, “감정이 무뎌진 것 같다는 말을 들은 적 있나요?” 여기서 depression과 avolition/anhedonia/asociality를 구분하려고 해봐.",
+  "functional decline을 더 객관화하면 좋아. 성적은 잘 물었어. 여기에 “6개월 전과 비교해 하루 생활이 어떻게 달라졌나요?”, “결석 횟수”, “과제 미제출”, “친구 수/만남 횟수”, “아르바이트나 동아리 활동”, “식사·위생·금전관리” 등을 구체적으로 물으면 baseline 대비 decline이 훨씬 명확해져.",
+  "onset와 progression을 timeline으로 재구성해야 해. “6개월 전부터”만으로는 부족해. “가장 처음 달라진 게 무엇이었나요?”, “그다음에는 무엇이 생겼나요?”, “사람들이 신경 쓰이기 시작한 건 정확히 언제인가요?”, “이름 부르는 소리는 언제부터였나요?”, “점점 심해졌나요 아니면 들쭉날쭉한가요?” 전구기는 횡단면보다 longitudinal trajectory가 훨씬 중요해.",
+  "mood disorder differential을 더 봐야 해. 우울은 일부 물었지만 “2주 이상 거의 매일 우울했나요?”, “식욕/체중 변화?”, “죄책감/무가치감?”, “psychomotor change?”, “집중저하?”를 보고, 동시에 mania/hypomania도 “잠을 적게 자도 안 피곤했던 기간?”, “말이 많아지거나 자신감이 비정상적으로 올라간 기간?”, “돈을 많이 쓰거나 충동적으로 행동한 적?”을 screen해야 해. psychotic-like symptom이 mood episode 안에서만 나타나는지도 중요하고.",
+  "anxiety/social anxiety와 구별할 질문도 필요해. 예를 들어 “사람들이 나를 보는 게 불편한 이유가 ‘내가 이상하게 보일까 봐’인가요, 아니면 실제로 사람들이 나에 대해 뭔가 하고 있다고 느껴서인가요?” 이 한 질문이 꽤 좋아. 전자는 social anxiety 쪽이고, 후자는 referential/paranoid experience 쪽으로 기울 수 있어.",
+  "OCD/intrusive thought와도 구별해야 해. “사람들이 나를 본다는 생각이 원치 않는데 반복적으로 떠오르는 걱정인가요, 아니면 실제로 그럴 것 같다는 느낌인가요?”, “그 생각을 없애려고 반복적으로 확인하거나 특정 행동을 하나요?”가 도움돼.",
+  "trauma/PTSD도 물어봐야 해. “과거 괴롭힘, 폭력, 성적 피해, 심각한 사고 같은 경험이 있었나요?”, “그 이후 사람을 경계하게 됐나요?”, “flashback이나 nightmare는요?” hypervigilance를 persecutory ideation으로 오인하면 안 되니까.",
+  "developmental/premorbid personality가 필요해. “어릴 때부터 친구를 사귀는 게 어려웠나요?”, “원래 혼자 지내는 걸 좋아했나요?”, “원래 의심이 많았나요?”, “학교생활과 성적은 어땠나요?” schizotypal traits, ASD, longstanding social anxiety와 새롭게 발생한 decline을 구분하려는 거야.",
+  "family history가 빠졌어. “가족 중 조현병, 양극성장애, 정신병적 증상으로 치료받은 분이 있나요?”, “자살이나 정신과 입원력이 있는 가족은요?” CHR risk formulation에 의미가 있어.",
+  "medical/neurologic causes를 screen해야 해. “최근 두통, 경련, 실신, 발열, 체중변화, 갑상선 증상, 머리 외상은요?”, “의식을 잃거나 기억이 끊긴 적은요?”, “최근 시작한 약이나 건강보조제는요?” 21세에서 전형적인 CHR presentation이라도 secondary cause를 완전히 건너뛰면 안 돼.",
+  "cognition을 좀 더 캐봐. “집중 안 된다”만 들었으니까 “책을 읽으면 내용이 들어오나요?”, “예전보다 기억력이 떨어졌나요?”, “과제를 계획하고 순서대로 처리하는 게 어려워졌나요?”, “대화 중 말을 따라가기 어려운가요?” subjective cognitive decline도 전구기에 흔히 동반돼.",
+  "self-disturbance/derealization 같은 현상도 한번 물어볼 가치가 있어. “내가 내가 아닌 것 같은 느낌”, “세상이 낯설거나 가짜처럼 느껴짐”, “예전부터 익숙했던 곳이 갑자기 이상하게 느껴짐” 등. 이것만으로 CHR를 진단하는 건 아니지만 phenomenology를 이해하는 데 도움이 돼.",
+  "behavioural change를 보호자에게 collateral로 확인해야 해. 이 환자는 어머니가 “달라졌다”고 해서 데려왔잖아. 실제 임상이면 환자 동의하에 어머니에게 “언제부터?”, “말수/표정/위생/수면/식사/외출/학교생활”, “혼잣말이나 이상 행동”, “밤에 창문을 확인한다든가 문을 잠그는 행동”, “가족을 의심하는 행동” 등을 물으면 환자가 인식하지 못한 변화가 드러날 수 있어.",
+  "“사람들이 나를 본다”는 문장 자체보다 그 문장을 환자가 어떻게 믿고 있는지가 중요하다. 같은 문장을 social anxiety 환자도, CHR-P 환자도, schizophrenia 환자도 말할 수 있다.",
+  "현재 conviction과 사후 insight는 다를 수 있다. 그 순간에는 80% 사실처럼 느꼈는데 집에 돌아오면 “내가 예민했나?”라고 생각할 수 있다.",
+  "따라서 “지금 생각하면 어떠세요?”만 물으면 실제 증상의 강도를 과소평가할 수 있다. **“그 순간에는 얼마나 사실 같았어요?”**가 별도로 필요하다.",
+  "반대로 그 순간의 conviction만 물으면 reality testing을 과대평가할 수 있다. **“지금 돌아보면 다른 설명도 가능하다고 생각하세요?”**까지 세트다.",
+  "“긴가민가한다”는 표현은 임상적으로 정보량이 많다. attenuated psychotic experience에서는 바로 그 불확실성이 핵심 phenomenology가 될 수 있다.",
+  "하지만 insight가 있다고 해서 CHR-P라는 뜻은 아니다. 정상인의 unusual experience, anxiety, OCD, trauma에서도 insight는 남아 있을 수 있다.",
+  "“누가 쳐다본다”와 “누가 나를 감시한다” 사이에는 큰 단계 차이가 있다. perception → interpretation → attribution → fixed belief 순서를 따져보면 좋다.",
+  "환자가 “사람들이 웃는다”고 말하면 먼저 실제 stimulus가 있었는지를 확인하라. 실제 웃음소리를 자신과 관련짓는다면 referential interpretation이고, 존재하지 않는 웃음소리를 들었다면 perceptual abnormality 쪽이다.",
+  "그래서 “무슨 일이 실제로 있었고, 거기에 어떤 의미를 붙였는지”를 분리해서 듣는 습관이 좋다.",
+  "“친구들이 이야기하다 조용해졌다”는 사건 자체는 얼마든지 현실에서 있을 수 있다. 병리성은 사건이 아니라 의미부여의 정도와 반복성에서 생긴다.",
+  "네가 “길거리 모르는 사람도 그런가요?”라고 물은 건 좋은 질문이다. 특정 인간관계 문제인지 generalized suspiciousness인지 범위를 확장해서 확인했기 때문이다.",
+  "반대로 특정 친구에게만 나타난다면 실제 interpersonal conflict나 bullying 가능성을 훨씬 더 진지하게 봐야 한다.",
+  "**맥락 의존성(context dependence)**도 중요하다. 학교에서만? 지하철에서도? 집에서도? 혼자 있을 때도? 상황을 넓혀가면서 물어보면 된다.",
+  "증상이 사람 많은 곳에서만 발생한다고 해서 단순 social anxiety라고 단정하면 안 된다. psychotic-like experiences도 external stimulation이나 stress가 많은 곳에서 더 두드러질 수 있다.",
+  "“카페에서 나왔다”는 정보는 symptom severity보다 때로 더 중요하다. 이미 behavioral consequence가 발생했다는 뜻이다.",
+  "증상 때문에 피하기 시작하면 다음 면담에서는 반드시 avoidance가 증상을 유지시키는지도 생각해야 한다. 밖에 나가지 않으면 자신의 해석을 현실에서 검증할 기회도 줄어든다.",
+  "기능저하는 “힘들어요”보다 숫자로 바꾸는 게 좋다. 친구 매일 → 월 1–2회, 결석 거의 없음 → 주 1–2회처럼 baseline/current를 비교하면 강력한 정보가 된다.",
+  "GPA 3점 후반 → 2점 중반도 매우 좋은 objective functional marker다.",
+  "따라서 CHR 면담에서는 “몇 번?”, “몇 시간?”, “몇 명?”, “몇 학점?” 같은 quantification 질문을 자주 쓰는 게 좋다.",
+  "사회적 기능과 역할 기능은 따로 봐야 한다. 친구를 안 만나지만 학업은 유지하는 사람과, 사회생활도 학업도 동시에 무너지는 사람은 다르다.",
+  "기능저하가 positive symptom보다 먼저 시작했는지도 중요하다. “학교를 안 가기 시작해서 사람들을 이상하게 느끼게 됐나, 반대인가?”를 시간축으로 재구성해라.",
+  "증상 onset과 functional decline onset을 같은 날짜로 뭉개지 마라. 각각 별도의 timeline을 만들어야 한다.",
+  "“6개월 전부터”라는 답을 받았다면 다음은 **“6개월 전 어느 것이 제일 먼저 생겼죠?”**가 자연스럽다.",
+  "전구기 면담은 snapshot보다 movie를 만드는 작업에 가깝다.",
+  "환자가 “원래 걱정은 있었다”고 하면 trait와 state를 구별하라. 원래 성격인가, 새로 생긴 변화인가가 핵심이다.",
+  "premorbid trait가 있더라도 최근 악화가 있으면 둘 다 기록해야 한다. “원래 예민하던 사람이 최근 qualitatively 달라졌다”도 가능하다.",
+  "“이름을 부르는 것 같다”는 경험은 생각보다 비특이적이다. 정상인에게도 생길 수 있어서 그것 하나로 psychosis-risk라고 보지 않는다.",
+  "perceptual abnormality에서는 clarity를 물어봐라. “김민수!”처럼 또렷했는가, 아니면 불분명한 소리가 이름처럼 느껴졌는가?",
+  "localization도 묻는다. “귀 바깥에서 들린 것 같았나요, 머릿속에서 떠오른 느낌인가요?”",
+  "source도 묻는다. 사람 목소리? 기계음? 물소리? 바람소리? 이미 존재하는 ambiguous stimulus를 misperceive했는지도 중요하다.",
+  "complexity도 묻는다. 단순 이름 → 단어 → 문장 → 대화 → commentary/command처럼 경험의 형태를 기술한다.",
+  "그러나 “단순→복잡 = 반드시 악화”라는 기계적 공식은 아니다. phenomenology를 기술하는 차원이지 단독 진단 기준이 아니다.",
+  "잠들기 직전이나 깨어날 때만 들린다면 hypnagogic/hypnopompic phenomenon을 먼저 생각한다.",
+  "그래서 AH를 물은 뒤에는 **“완전히 깨어 있을 때였나요?”**라는 짧은 질문이 매우 효율적이다.",
+  "“그 소리에 반응해서 행동했나요?”도 중요하다. 확인하러 문을 여는 것과 명령을 수행하는 것은 임상적 의미가 크게 다르다.",
+  "distress와 impairment는 다르다. 매우 무섭지만 기능은 유지될 수도 있고, 별로 무섭지 않은데 학교를 완전히 안 갈 수도 있다.",
+  "네 환자는 perceptual experience보다 suspiciousness가 기능을 더 많이 떨어뜨렸다. 이렇게 어떤 symptom domain이 실제 impairment를 만드는지 찾아야 한다.",
+  "positive symptom이 가장 눈에 띄더라도 치료 target은 불면, anxiety, depression, social withdrawal일 수 있다. CHR-P에는 동반 정신병리가 흔하다.",
+  "환자가 “사람 만나는 게 귀찮다”고 하면 anhedonia인지 avolition인지 anxiety-driven avoidance인지 분해해야 한다.",
+  "“만나고 싶은데 무서워서 안 만난다”와 “만날 마음 자체가 없다”는 전혀 다른 현상이다.",
+  "“재미가 줄었다”도 consummatory anhedonia와 anticipatory anhedonia를 나눠 생각할 수 있다. 실제 하면 즐거운데 시작할 마음이 없는지도 물어봐라.",
+  "수면은 단순 vegetative symptom이 아니다. 이 환자의 경우 침대에서 referential experience를 계속 반추하면서 sleep-onset insomnia가 생긴다는 연결고리가 나왔다.",
+  "즉 “잠 몇 시간?”만 묻기보다 **“왜 못 자나요?”**가 더 많은 psychopathology를 드러낼 때가 있다.",
+  "반추(rumination)와 psychotic conviction을 구별하라. “혹시 그랬나?”를 반복 고민하는 것과 “분명히 그랬다”를 반복 생각하는 것은 다르다.",
+  "불확실성이 오히려 반복적인 checking과 rumination을 만들 수도 있다.",
+  "환자가 “제가 예민해서 그런 걸 수도 있다”고 계속 말한다면 그 말을 그냥 insight (+)로 적지 말고, 얼마나 진심으로 alternative explanation을 받아들이는지 확인해라.",
+  "“제가 예민한 걸 수도 있지만 사실 걔들이 그러는 게 맞아요”라면 apparent insight가 실제로는 매우 제한적일 수 있다.",
+  "환자에게 “그게 사실이라는 증거가 뭐라고 생각하세요?”라고 물으면 reasoning process를 볼 수 있다. 단, 논쟁하려는 어조로 묻지는 않는다.",
+  "이어서 **“반대로 아닐 수도 있다고 생각하게 만드는 점은요?”**라고 물으면 alternative hypothesis generation 능력을 볼 수 있다.",
+  "psychosis 면담의 목적은 환자의 믿음을 논박하는 것이 아니라 그 믿음의 구조를 이해하는 것이다.",
+  "그래서 “그건 사실이 아니잖아요”는 초진에서 거의 얻을 게 없는 질문이다.",
+  "반대로 “그랬으면 정말 무서웠겠네요”라는 validation은 감정에 동의하는 것이지 망상 내용에 동의하는 게 아니다.",
+  "네가 “많이 불편할 것 같아요”라고 한 것은 이 점에서 좋았다.",
+  "다만 validation 다음에는 바로 phenomenology를 캐면 된다. “그때 얼마나 확실했어요?”",
+  "면담자가 의심을 너무 직접적으로 이름 붙이면 환자가 거기에 맞춰 답할 가능성이 있다. 가능한 한 처음에는 환자 자신의 단어를 사용한다.",
+  "따라서 “망상 같은 생각이 있나요?”보다 “최근 이상하거나 설명하기 어려운 경험이 있었나요?”가 screening에는 낫다.",
+  "“환청이 있나요?”보다 “다른 사람은 못 들은 것 같은 소리나 목소리를 경험한 적이 있나요?”가 phenomenology를 더 잘 잡는다.",
+  "그렇다고 지나치게 모호한 질문만 하면 놓친다. open question → 구체적인 probe 순서가 좋다.",
+  "예를 들면 **“최근 이상하게 느껴지는 일이 있나요?” → “TV가 나한테 메시지를 보내는 것처럼 느껴진 적은요?”**처럼 funneling한다.",
+  "모든 psychotic symptom을 한꺼번에 체크리스트처럼 묻는 것보다 환자가 내놓은 phenomenon 하나를 깊게 파본 뒤 domain을 확장하는 편이 rapport가 좋다.",
+  "하지만 depth에 빠져 breadth를 잃으면 안 된다. 이번 면담처럼 suspiciousness만 10분 파고 다른 positive domain을 하나도 안 보면 위험하다.",
+  "따라서 머릿속에는 항상 P1 unusual thought / P2 suspiciousness / P3 grandiosity / P4 perceptual abnormality / P5 disorganized communication 다섯 칸을 가지고 있어라. SIPS에서는 이 다섯 positive domain을 0–6으로 평가하고 3–5가 attenuated range다.",
+  "grandiosity는 조증에서만 나오는 것이 아니다. “특별한 능력이 생긴 것 같다”, “내가 특별히 선택된 느낌” 같은 attenuated experience도 확인한다.",
+  "반대로 자신감이 높아졌다고 전부 grandiosity가 아니다. sleep, energy, activity, speech, impulsivity를 함께 보면 mania differential에 도움이 된다.",
+  "disorganization은 질문보다 면담 자체가 검사다. 답변이 지나치게 우회하는지, derailment가 있는지, 질문을 놓치는지 관찰한다.",
+  "따라서 MSE와 history taking은 분리된 작업이 아니다. 환자가 답하는 방식을 듣는 순간 이미 thought process를 평가하고 있다.",
+  "collateral에서는 “이상해졌다”라는 보호자의 평가를 그대로 쓰지 말고 행동으로 변환한다. 방 밖에 안 나온다 / 샤워가 주 7회→1회 / 창문을 반복 확인한다 같은 식이다.",
+  "환자와 보호자의 chronology가 다르면 그 불일치 자체도 정보다. poor insight일 수도 있고, 보호자가 과도하게 해석할 수도 있다.",
+  "CHR assessment는 “조현병을 찾아내는 검사”가 아니다. CHR-P 자체도 여러 경로를 가진 heterogeneous clinical state이며, attenuated positive symptoms 외에 negative/general symptoms, comorbidity, functional impairment를 함께 봐야 한다.",
+  "마지막으로 좋은 CHR 면담의 산출물은 ‘CHR 같다/아니다’가 아니라, 최소한 무슨 경험이 있는지 + 얼마나 믿는지 + 얼마나 자주/오래인지 + 얼마나 괴로운지 + 행동을 어떻게 바꾸었는지 + 기능이 얼마나 떨어졌는지 + 시간에 따라 어떻게 변했는지를 설명할 수 있는 상태다.",
+  "“왜 그런 생각이 들었어요?”와 “그 생각이 들기 직전에 무슨 일이 있었어요?”는 다르다. 전자는 해석을, 후자는 trigger/context를 본다. 둘 다 필요하다.",
+  "증상 뒤의 행동을 보면 conviction이 간접적으로 드러난다. “누가 나를 보는 것 같다”면서 실제로 자리를 옮기고, 동선을 바꾸고, 문을 잠그기 시작했다면 말보다 행동이 belief strength를 더 잘 보여줄 수 있다.",
+  "환자가 먼저 말하지 않는다고 증상이 없는 건 아니다. psychotic-like experience는 창피함, 낙인 우려, “말해도 이상하게 볼 것 같아서” 숨기는 경우가 많다. rapport가 생긴 뒤 다시 물으면 새 정보가 나올 수 있다.",
+  "같은 현상을 다른 단어로 두 번 물어보는 건 유용하다. 예: “사람들이 나를 신경 쓴다는 느낌”과 “우연한 일들이 나와 관련 있어 보이는 느낌”은 겹치지만 서로 다른 예시를 끌어낼 수 있다.",
+  "증상이 악화되는 조건을 꼭 찾아라. 수면부족, 스트레스, 사회적 상황, 카페인, cannabis, 시험기간 등. severity 자체보다 state dependency가 감별에 도움이 될 때가 많다.",
+  "반대로 좋아지는 조건도 물어라. 집에 있으면 괜찮은지, 친구 한 명과 있으면 괜찮은지, 잠을 충분히 자면 줄어드는지. 이것도 psychopathology의 구조를 보여준다.",
+  "“사람들이 나를 싫어한다”와 “사람들이 나를 감시한다”는 질적으로 다르다. 전자는 depressive/social evaluative cognition일 수 있고, 후자는 persecutory interpretation 쪽에 더 가깝다. 내용의 정서적 톤만 보지 말고 belief structure를 봐야 한다.",
+  "환자가 자신의 경험을 설명할 언어가 부족할 수 있다. 그래서 “이상해요”, “기분 나빠요”, “세상이 좀 달라요” 같은 애매한 표현을 성급히 해석하지 말고, 구체적 예시를 여러 개 받아야 한다.",
+  "한 번의 이상경험보다 반복되는 패턴이 중요하다. 정상인도 이름을 잘못 듣거나 시선이 신경 쓰일 수 있다. 임상적 의미는 반복성, 확장성, 기능저하와 결합될 때 커진다.",
+  "면담 마지막에는 환자 자신의 설명모델을 물어봐라. “본인은 왜 이런 변화가 생겼다고 생각하세요?”라고 하면 anxiety model인지, interpersonal model인지, psychotic attribution인지, substance-related attribution인지 드러난다. 이것은 insight와 치료 alliance를 동시에 보는 질문이기도 하다."
+];
+
+/* ===== SHUFFLE DECK ===== */
+const deck = { order: [], pos: 0, last: -1 };
+function shuffle(a) {
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+function refill() {
+  deck.order = shuffle(NOTES.map((_, i) => i));
+  if (deck.order.length > 1 && deck.order[0] === deck.last) {
+    [deck.order[0], deck.order[1]] = [deck.order[1], deck.order[0]];
+  }
+  deck.pos = 0;
+}
+function draw() {
+  if (deck.pos >= deck.order.length) refill();
+  const i = deck.order[deck.pos++];
+  deck.last = i;
+  return i;
+}
+
+/* ===== RENDER ===== */
+const $ = id => document.getElementById(id);
+const el = {
+  card: $('card'), view: $('view'), note: $('note'), memo: $('memo'), memoText: $('memoText'),
+  status: $('status'), next: $('next'), copy: $('copy'), edit: $('edit'), memoBtn: $('memoBtn'),
+  controls: $('controls'), editor: $('editor'), editLabel: $('editLabel'), editText: $('editText'),
+  editHint: $('editHint'), cancel: $('cancel'), reset: $('reset'), remove: $('remove'), save: $('save')
+};
+const esc = s => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+const plain = s => s.replace(/\*\*(.+?)\*\*/g, '$1');
+const numOf = i => String(i + 1).padStart(3, '0');
+function sizeClass(n) { return n <= 60 ? 'len-s' : n <= 120 ? 'len-m' : n <= 190 ? 'len-l' : 'len-xl'; }
+
+/* ===== EDITS & MEMOS =====
+   카드별 수정본/메모: { n001: { text, memo } }
+   GitHub Pages에서는 이 브라우저(기기)에 저장됨. */
+const store = { mode: 'local', db: null, over: {} };
+const LOCAL_KEY = 'chr-note-overrides';
+const keyOf = i => 'n' + numOf(i);
+const textOf = i => (store.over[keyOf(i)] && store.over[keyOf(i)].text) || NOTES[i];
+const memoOf = i => (store.over[keyOf(i)] && store.over[keyOf(i)].memo) || '';
+const isEdited = i => !!(store.over[keyOf(i)] && store.over[keyOf(i)].text);
+
+function loadLocal() {
+  try { store.over = JSON.parse(localStorage.getItem(LOCAL_KEY) || '{}') || {}; } catch { store.over = {}; }
+}
+function saveLocal() {
+  try { localStorage.setItem(LOCAL_KEY, JSON.stringify(store.over)); } catch {}
+}
+
+let current = 0;
+let editing = null; // 'text' | 'memo' | null
+
+function render(i) {
+  current = i;
+  const text = textOf(i);
+  const memo = memoOf(i);
+  el.status.textContent = `CHR // NOTE ${numOf(i)} / ${NOTES.length}` + (isEdited(i) ? ' // EDITED' : '');
+  el.note.className = 'note ' + sizeClass(plain(text).length);
+  el.note.innerHTML = esc(text).replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+  el.memoText.textContent = memo;
+  el.memo.hidden = !memo;
+  el.memoBtn.textContent = memo ? 'MEMO ✎' : 'MEMO';
+  document.title = `CHR // NOTE ${numOf(i)}`;
+}
+
+async function persist(i, patch) {
+  const k = keyOf(i);
+  const prev = store.over[k] ? Object.assign({}, store.over[k]) : null;
+  const next = Object.assign({}, prev || {}, patch);
+  Object.keys(next).forEach(f => { if (!next[f]) delete next[f]; });
+  const empty = Object.keys(next).length === 0;
+  if (empty) delete store.over[k]; else store.over[k] = next;
+
+  if (store.mode === 'db') {
+    try {
+      const ref = store.db.collection('cards').doc(k);
+      if (empty) await ref.delete(); else await ref.set(next);
+      return true;
+    } catch (e) {
+      if (prev) store.over[k] = prev; else delete store.over[k];
+      return false;
+    }
+  }
+  saveLocal();
+  return true;
+}
+
+/* ===== EDITOR ===== */
+function openEditor(mode) {
+  editing = mode;
+  const n = numOf(current);
+  el.editLabel.textContent = mode === 'text' ? `EDIT // NOTE ${n}` : `MEMO // NOTE ${n}`;
+  el.editText.value = mode === 'text' ? textOf(current) : memoOf(current);
+  el.editText.placeholder = mode === 'memo' ? '이 카드에 대한 메모' : '';
+  el.editHint.textContent = mode === 'text'
+    ? '**두 별표 사이**의 글자는 반전 강조로 보여요.'
+    : '메모는 카드 아래에 작게 표시돼요.';
+  el.reset.hidden = !(mode === 'text' && isEdited(current));
+  el.remove.hidden = !(mode === 'memo' && memoOf(current));
+  el.save.textContent = 'SAVE';
+  el.view.hidden = true;
+  el.controls.hidden = true;
+  el.editor.hidden = false;
+  el.editText.focus();
+}
+function closeEditor() {
+  editing = null;
+  el.editor.hidden = true;
+  el.view.hidden = false;
+  el.controls.hidden = false;
+  render(current);
+}
+async function commit(patch) {
+  el.save.textContent = 'SAVING';
+  const ok = await persist(current, patch);
+  if (ok) { closeEditor(); }
+  else { el.save.textContent = 'RETRY'; }
+}
+el.save.addEventListener('click', () => {
+  const v = el.editText.value.trim();
+  if (editing === 'text') commit({ text: v && v !== NOTES[current] ? v : '' });
+  else commit({ memo: v });
+});
+el.reset.addEventListener('click', () => commit({ text: '' }));
+el.remove.addEventListener('click', () => commit({ memo: '' }));
+el.cancel.addEventListener('click', closeEditor);
+el.editText.addEventListener('keydown', e => {
+  if (e.key === 'Escape') closeEditor();
+  if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) el.save.click();
+});
+el.edit.addEventListener('click', () => openEditor('text'));
+el.memoBtn.addEventListener('click', () => openEditor('memo'));
+
+/* ===== DATA: EXPORT / IMPORT =====
+   백업 파일 형식 (다른 사이트·기기에서 불러오기용)
+   { format: "100-sayings-backup", version: 1, title, exportedAt,
+     notes: [ { no, original, text?, memo? } ... ] } */
+const SITE_TITLE = 'CHR // NOTE';
+const panel = {
+  box: $('panel'), info: $('dataInfo'), msg: $('dataMsg'),
+  open: $('dataBtn'), close: $('dataClose'), exp: $('exportBtn'), imp: $('importBtn'), file: $('importFile')
+};
+function dataCounts() {
+  let edited = 0, memos = 0;
+  Object.values(store.over).forEach(v => { if (v.text) edited++; if (v.memo) memos++; });
+  return { edited, memos };
+}
+function openPanel() {
+  editing = 'data';
+  const c = dataCounts();
+  panel.info.textContent = `카드 ${NOTES.length}개 · 수정한 카드 ${c.edited}개 · 메모 ${c.memos}개`;
+  panel.msg.textContent = '';
+  el.view.hidden = true; el.controls.hidden = true; panel.box.hidden = false;
+}
+function closePanel() {
+  editing = null;
+  panel.box.hidden = true; el.view.hidden = false; el.controls.hidden = false;
+  render(current);
+}
+function buildBackup() {
+  return {
+    format: '100-sayings-backup',
+    version: 1,
+    title: SITE_TITLE,
+    exportedAt: new Date().toISOString(),
+    notes: NOTES.map((original, i) => {
+      const o = store.over[keyOf(i)] || {};
+      const item = { no: i + 1, original };
+      if (o.text) item.text = o.text;
+      if (o.memo) item.memo = o.memo;
+      return item;
+    })
+  };
+}
+function exportData() {
+  const json = JSON.stringify(buildBackup(), null, 2);
+  const d = new Date();
+  const stamp = d.getFullYear() + String(d.getMonth() + 1).padStart(2, '0') + String(d.getDate()).padStart(2, '0');
+  const name = SITE_TITLE.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') + '-backup-' + stamp + '.json';
+  try {
+    const url = URL.createObjectURL(new Blob([json], { type: 'application/json' }));
+    const a = document.createElement('a');
+    a.href = url; a.download = name;
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 2000);
+    panel.msg.textContent = 'EXPORTED // ' + name;
+  } catch {
+    panel.msg.textContent = 'EXPORT FAILED';
+  }
+}
+function parseBackup(obj) {
+  const out = {};
+  if (obj && Array.isArray(obj.notes)) {
+    obj.notes.forEach((n, idx) => {
+      const i = Number.isInteger(n.no) ? n.no - 1 : idx;
+      if (i < 0 || i >= NOTES.length) return;
+      const v = {};
+      if (typeof n.text === 'string' && n.text.trim() && n.text.trim() !== NOTES[i]) v.text = n.text.trim();
+      if (typeof n.memo === 'string' && n.memo.trim()) v.memo = n.memo.trim();
+      if (Object.keys(v).length) out[keyOf(i)] = v;
+    });
+    return out;
+  }
+  if (obj && typeof obj === 'object') {           // 예전 형식 { n001: {text, memo} }
+    Object.entries(obj.cards || obj).forEach(([k, v]) => {
+      if (/^n\d{3}$/.test(k) && v && typeof v === 'object') {
+        const c = {};
+        if (typeof v.text === 'string' && v.text.trim()) c.text = v.text.trim();
+        if (typeof v.memo === 'string' && v.memo.trim()) c.memo = v.memo.trim();
+        if (Object.keys(c).length) out[k] = c;
+      }
+    });
+    return out;
+  }
+  return null;
+}
+async function importData(file) {
+  panel.msg.textContent = 'READING...';
+  let obj;
+  try { obj = JSON.parse(await file.text()); } catch { panel.msg.textContent = 'NOT A BACKUP FILE'; return; }
+  const incoming = parseBackup(obj);
+  if (!incoming) { panel.msg.textContent = 'NOT A BACKUP FILE'; return; }
+  const keys = Object.keys(incoming);
+  let failed = 0;
+  for (const k of keys) {
+    const i = parseInt(k.slice(1), 10) - 1;
+    const ok = await persist(i, incoming[k]);
+    if (!ok) failed++;
+  }
+  const c = dataCounts();
+  panel.info.textContent = `카드 ${NOTES.length}개 · 수정한 카드 ${c.edited}개 · 메모 ${c.memos}개`;
+  panel.msg.textContent = failed ? `IMPORTED ${keys.length - failed} // FAILED ${failed}` : `IMPORTED ${keys.length} CARDS`;
+}
+panel.open.addEventListener('click', openPanel);
+panel.close.addEventListener('click', closePanel);
+panel.exp.addEventListener('click', exportData);
+panel.imp.addEventListener('click', () => { panel.file.value = ''; panel.file.click(); });
+panel.file.addEventListener('change', () => { if (panel.file.files[0]) importData(panel.file.files[0]); });
+document.addEventListener('keydown', e => { if (e.key === 'Escape' && editing === 'data') closePanel(); });
+
+/* ===== NEXT / COPY ===== */
+const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+let busy = false;
+function nextNote() {
+  if (busy || editing) return;
+  const i = draw();
+  el.copy.textContent = 'COPY';
+  if (reduceMotion.matches) { render(i); return; }
+  busy = true;
+  el.card.classList.remove('on');
+  el.card.classList.add('off');
+  setTimeout(() => {
+    render(i);
+    el.card.classList.remove('off');
+    void el.card.offsetWidth;
+    el.card.classList.add('on');
+    busy = false;
+  }, 110);
+}
+
+async function copyNote() {
+  const text = plain(textOf(current));
+  try {
+    await navigator.clipboard.writeText(text);
+  } catch {
+    const t = document.createElement('textarea');
+    t.value = text;
+    t.setAttribute('readonly', '');
+    t.style.position = 'fixed';
+    t.style.opacity = '0';
+    document.body.appendChild(t);
+    t.select();
+    try { document.execCommand('copy'); } catch {}
+    t.remove();
+  }
+  el.copy.textContent = 'COPIED';
+  clearTimeout(el.copy._t);
+  el.copy._t = setTimeout(() => (el.copy.textContent = 'COPY'), 1200);
+}
+
+el.next.addEventListener('click', nextNote);
+el.copy.addEventListener('click', copyNote);
+
+/* ===== START ===== */
+loadLocal();
+refill();
+render(draw());
+el.card.classList.add('on');
+
+/* 게시된 페이지: 데이터베이스가 준비되면 거기에 저장된 수정본/메모로 전환 */
+(async () => {
+  if (!window.claude || typeof window.claude.use !== 'function') return;
+  let db = null;
+  try { db = await window.claude.use('db'); } catch { db = null; }
+  if (!db) return;
+  store.db = db;
+  store.mode = 'db';
+  db.collection('cards').onSnapshot(snap => {
+    const next = {};
+    snap.docs.forEach(d => { if (d.exists) next[d.id] = d.data(); });
+    store.over = next;
+    if (!editing) render(current);
+  }, () => {});
+})();
+</script>
+</body>
+</html>
